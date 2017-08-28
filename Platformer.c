@@ -43,7 +43,8 @@ char * door_image =
       "|  |";
 
 sprite_id platform;
-char * platform_image = "=========================================================================";
+sprite_id bottom_platform;
+char * platform_image = "=============================================================================================================================";
 
 sprite_id zombie;
 char * zombie_image =
@@ -66,7 +67,6 @@ void draw_border(void) {
   int bottom = (screen_height() - 1);
 
   draw_line(left, top, right, top, '-');
-  draw_line(left, bottom, right, bottom, '=');
   draw_line(right, top + 1, right, bottom - 1, '|');
   draw_line(left, top + 1, left, bottom - 1, '|');
 }
@@ -79,8 +79,107 @@ void draw_sprites(void) {
   draw_formatted(65, 0, "Score: %d", score);
   sprite_draw(hero);
   sprite_draw(zombie);
+  sprite_draw(bottom_platform);
   sprite_draw(platform);
   sprite_draw(door);
+  draw_formatted(20, 10, "%f", sprite_dy(hero));
+}
+
+bool sprite_collided(sprite_id sprite_1, sprite_id sprite_2) {
+  bool collided = true;
+
+  int sprite_1x = round(sprite_x(sprite_1));
+  int sprite_1y = round(sprite_y(sprite_1));
+  int sprite_1r = sprite_1x + sprite_width(sprite_1) - 1;
+  int sprite_1b = sprite_1y + sprite_height(sprite_1) - 1;
+
+  int sprite_2x = round(sprite_x(sprite_2));
+  int sprite_2y = round(sprite_y(sprite_2));
+  int sprite_2r = sprite_2x + sprite_width(sprite_2) - 1;
+  int sprite_2b = sprite_2y + sprite_height(sprite_2) - 1;
+
+  if (sprite_1r < sprite_2x) collided = false;
+  if (sprite_1b < sprite_2y) collided = false;
+  if (sprite_2r < sprite_1x) collided = false;
+  if (sprite_2b < sprite_1y) collided = false;
+
+  return collided;
+}
+
+void zombie_movement(void) {
+  int zx = round(sprite_x(zombie));
+  double zdx = sprite_dx(zombie);
+  double zdy = sprite_dy(zombie);
+
+  if (zx <= 0) {
+    zdx = fabs(zdx);
+  } else if (zx >= screen_width() - ZOMBIE_WIDTH) {
+    zdx = -fabs(zdx);
+  }
+
+  if (zdx != sprite_dx(zombie)) {
+    sprite_back(zombie);
+    sprite_turn_to(zombie, zdx, zdy);
+  }
+}
+
+void hero_movement(void) {
+  key = get_char();
+  int hx = round(sprite_x(hero));
+  int hy = round(sprite_y(hero));
+  double hdx = sprite_dx(hero);
+  double hdy = sprite_dy(hero);
+
+  if (key == KEY_LEFT && hx > 2) {
+    if (sprite_dx(hero) == 0.1) {
+      hdx = 0;
+    } else if (hdx < sprite_dx(hero)) {
+      hdx += 0.1;
+    } else if (hdx == sprite_dx(hero)) {
+      hdx -= 0.1;
+    } else {
+      hdx -= 0.4;
+    }
+  }
+
+  if (key == KEY_RIGHT && hx < screen_width() - HERO_WIDTH - 2) {
+    if (sprite_dx(hero) == -0.1) {
+      hdx = 0;
+    } else if (hdx > sprite_dx(hero)) {
+      hdx -= 0.1;
+    } else if (hdx == sprite_dx(hero)) {
+      hdx += 0.1;
+    } else {
+      hdx += 0.4;
+    }
+  }
+
+  if (key == KEY_UP && hy > 2) {
+    // jumped = true;
+    hdy -= 0.01;
+    sprite_turn_to(hero, hdx, hdy);
+    sprite_step(hero);
+  }
+  else {
+    hdy += 0.01;
+    // sprite_back(hero);
+  }
+
+  if (hy > screen_height() - HERO_HEIGHT - 3) {
+    //hdy = 0;
+  }
+  // else {
+  //   hdy = -0.5;
+  // }
+
+  if ((hx > 1 && hx < screen_width() - HERO_WIDTH - 2)) {
+    sprite_step(hero);
+  } else {
+    hdx = 0;
+    sprite_back(hero);
+  }
+
+  sprite_turn_to(hero, hdx, hdy);
 }
 
 void jump(void) {
@@ -117,27 +216,6 @@ void jump(void) {
   }
 }
 
-bool sprite_collided(sprite_id sprite_1, sprite_id sprite_2) {
-  bool collided = true;
-
-  int sprite_1x = round(sprite_x(sprite_1));
-  int sprite_1y = round(sprite_y(sprite_1));
-  int sprite_1r = sprite_1x + sprite_width(sprite_1) - 1;
-  int sprite_1b = sprite_1y + sprite_height(sprite_1) - 1;
-
-  int sprite_2x = round(sprite_x(sprite_2));
-  int sprite_2y = round(sprite_y(sprite_2));
-  int sprite_2r = sprite_2x + sprite_width(sprite_2) - 1;
-  int sprite_2b = sprite_2y + sprite_height(sprite_2) - 1;
-
-  if (sprite_1r < sprite_2x) collided = false;
-  if (sprite_1b < sprite_2y) collided = false;
-  if (sprite_2r < sprite_1x) collided = false;
-  if (sprite_2b < sprite_1y) collided = false;
-
-  return collided;
-}
-
 //Setup Game
 void setup(void) {
   my_timer = create_timer(1000);
@@ -158,75 +236,30 @@ void setup(void) {
   int ph = PLATFORM_HEIGHT;
   platform = sprite_create((screen_width()/2) - (pw/2), screen_height() - 10, pw, ph, platform_image);
 
+  int bw = screen_width();
+  int bh = screen_height();
+  bottom_platform = sprite_create(0, screen_height() - 1, bw, bh, platform_image);
+
   int zw = ZOMBIE_WIDTH;
   int zh = ZOMBIE_HEIGHT;
   zombie = sprite_create(screen_width() - 5, screen_height() - 5, zw, zh, zombie_image);
 
   draw_sprites();
   sprite_turn_to(zombie, 0.1, 0);
+  sprite_turn_to(hero, 0, -0.5);
   sprite_turn(zombie, 180);
 }
 
 //Play one turn of game
 void process(void) {
-  key = get_char();
-  int zx = round(sprite_x(zombie));
-  double zdx = sprite_dx(zombie);
-  int hx = round(sprite_x(hero));
-  int hdx = sprite_dx(hero);
-  int hy = round(sprite_y(hero));
   jump();
+  zombie_movement();
+  hero_movement();
 
-  if (zx <= 0) {
-    zdx = fabs(zdx);
-  } else if (zx >= screen_width() - ZOMBIE_WIDTH) {
-    zdx = -fabs(zdx);
-  }
-
-  if (zdx != sprite_dx(zombie)) {
-    sprite_back(zombie);
-    sprite_turn_to(zombie, zdx, sprite_dy(zombie));
-  }
-
-  if (key == KEY_UP && hy > 2) {
-    jumped = true;
-  }
-
-  if (key == KEY_LEFT && hx > 1) {
-    if (sprite_dx(hero) == 0.1) {
-      sprite_turn_to(hero, 0, 0);
-    } else if (hdx < sprite_dx(hero)) {
-      sprite_turn_to(hero, 0.1, 0);
-    } else if (hdx == sprite_dx(hero)) {
-      sprite_turn_to(hero, -0.1, 0);
-    } else {
-      sprite_turn_to(hero, -0.4, 0);
-    }
-  }
-
-  if (key == KEY_RIGHT && hx < screen_width() - sprite_width(hero) - 1) {
-    if (sprite_dx(hero) == -0.1) {
-      sprite_turn_to(hero, 0, 0);
-    } else if (hdx > sprite_dx(hero)) {
-      sprite_turn_to(hero, -0.1, 0);
-    } else if (hdx == sprite_dx(hero)) {
-      sprite_turn_to(hero, 0.1, 0);
-    } else {
-      sprite_turn_to(hero, 0.4, 0);
-    }
-  }
-
-  if ((hx > 1 && hx < screen_width() - sprite_width(hero) - 1)) {
-    sprite_step(hero);
-  } else {
-    sprite_back(hero);
-    sprite_turn_to(hero, 0, 0);
-  }
-
-  if (sprite_collided(hero, zombie)) {
-    lives = lives - 1;
-    setup();
-  }
+  // if (sprite_collided(hero, zombie)) {
+  //   lives = lives - 1;
+  //   setup();
+  // }
 
   if (timer_expired(my_timer)) {
     timer++;
