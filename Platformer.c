@@ -168,14 +168,6 @@ void hero_movement(void) {
     hdy += 0.01;
   }
 
-  if (sprite_collided(hero, bottom_platform)) {
-    hy -= 0.5;
-    hdy = 0;
-    sprite_set_image(hero, hero_image);
-    sprite_move_to(hero, hx, hy);
-    sprite_draw(hero);
-  }
-
   if ((hx > 1 && hx < screen_width() - HERO_WIDTH - 2)) {
     sprite_step(hero);
   } else {
@@ -226,6 +218,30 @@ void process(void) {
   if (sprite_collided(hero, zombie)) {
     lives = lives - 1;
     setup();
+  }
+
+  if (sprite_collided(hero, platform) || sprite_collided(hero, bottom_platform)) {
+    int hx = sprite_x(hero);
+    int hy = sprite_y(hero);
+    int px = sprite_x(platform);
+    int py = sprite_y(platform);
+
+    double hdx = sprite_dx(hero);
+    double hdy = sprite_dy(hero);
+    sprite_set_image(hero, hero_image);
+
+    if (hy == py + PLATFORM_HEIGHT - 1 && hdy < 0) {
+      hdy = -hdy;
+    } else if (hx + HERO_WIDTH - 1 == px && hdx > 0) {
+      hdx = 0;
+    } else if (hx == px + PLATFORM_WIDTH - 1 && hdx < 0) {
+      hdx = 0;
+    } else {
+      hdy = 0;
+    }
+
+    sprite_back(hero);
+    sprite_turn_to(hero, hdx, hdy);
   }
 
   if (timer_expired(my_timer)) {
