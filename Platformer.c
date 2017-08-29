@@ -19,8 +19,6 @@
 
 bool game_over = false;
 bool update_screen = true;
-bool jumped = false;
-bool peak = false;
 int key;
 int lives = 10;
 int level = 1;
@@ -155,22 +153,22 @@ void hero_movement(void) {
   }
 
   if (key == KEY_UP && hy > 2) {
-    // jumped = true;
-    hdy -= 0.01;
-    sprite_turn_to(hero, hdx, hdy);
-    sprite_step(hero);
+    if (hdy == 0) {
+      hdy = -0.5;
+    } else {
+      hdy -= 0.01;
+    }
   }
-  else {
+  else if (hdy != 0){
     hdy += 0.01;
-    // sprite_back(hero);
   }
 
-  if (hy > screen_height() - HERO_HEIGHT - 3) {
-    //hdy = 0;
+  if (sprite_collided(hero, bottom_platform)) {
+    hy -= 0.5;
+    hdy = 0;
+    sprite_move_to(hero, hx, hy);
+    sprite_draw(hero);
   }
-  // else {
-  //   hdy = -0.5;
-  // }
 
   if ((hx > 1 && hx < screen_width() - HERO_WIDTH - 2)) {
     sprite_step(hero);
@@ -178,42 +176,7 @@ void hero_movement(void) {
     hdx = 0;
     sprite_back(hero);
   }
-
   sprite_turn_to(hero, hdx, hdy);
-}
-
-void jump(void) {
-  if (jumped) {
-    key = 0;
-    double dx = sprite_dx(hero);
-    double dy = sprite_dy(hero);
-    double height = screen_height() - 15;
-    char * jump_image =
-          " 0 "
-          "\\|/"
-          "/'\\ ";
-
-    if (sprite_y(hero) > height && !peak) {
-      sprite_step(hero);
-      dy = -0.1;
-      sprite_turn_to(hero, dx, dy);
-      sprite_set_image(hero, jump_image);
-    } else {
-      peak = true;
-      dy = 0.1;
-      sprite_step(hero);
-      sprite_turn_to(hero, dx, dy);
-      sprite_set_image(hero, hero_image);
-    }
-
-    if (peak && sprite_y(hero) == screen_height() - 4) {
-      jumped = false;
-      peak = false;
-      dy = 0;
-      sprite_turn_to(hero, dx, dy);
-    }
-    key = get_char();
-  }
 }
 
 //Setup Game
@@ -246,20 +209,18 @@ void setup(void) {
 
   draw_sprites();
   sprite_turn_to(zombie, 0.1, 0);
-  sprite_turn_to(hero, 0, -0.5);
   sprite_turn(zombie, 180);
 }
 
 //Play one turn of game
 void process(void) {
-  jump();
   zombie_movement();
   hero_movement();
 
-  // if (sprite_collided(hero, zombie)) {
-  //   lives = lives - 1;
-  //   setup();
-  // }
+  if (sprite_collided(hero, zombie)) {
+    lives = lives - 1;
+    setup();
+  }
 
   if (timer_expired(my_timer)) {
     timer++;
