@@ -33,6 +33,11 @@ char * hero_image =
       "/|\\"
       "/'\\ ";
 
+char * hero_jump_image =
+      " 0 "
+      "\\|/"
+      "/'\\ ";
+
 sprite_id door;
 char * door_image =
       "EXIT"
@@ -75,12 +80,11 @@ void draw_sprites(void) {
   draw_formatted(25, 0, "Lives: %d", lives);
   draw_formatted(45, 0, "Level: %d", level);
   draw_formatted(65, 0, "Score: %d", score);
+  sprite_draw(bottom_platform);
   sprite_draw(hero);
   sprite_draw(zombie);
-  sprite_draw(bottom_platform);
   sprite_draw(platform);
   sprite_draw(door);
-  draw_formatted(20, 10, "%f", sprite_dy(hero));
 }
 
 bool sprite_collided(sprite_id sprite_1, sprite_id sprite_2) {
@@ -153,6 +157,7 @@ void hero_movement(void) {
   }
 
   if (key == KEY_UP && hy > 2) {
+    sprite_set_image(hero, hero_jump_image);
     if (hdy == 0) {
       hdy = -0.5;
     } else {
@@ -166,6 +171,7 @@ void hero_movement(void) {
   if (sprite_collided(hero, bottom_platform)) {
     hy -= 0.5;
     hdy = 0;
+    sprite_set_image(hero, hero_image);
     sprite_move_to(hero, hx, hy);
     sprite_draw(hero);
   }
@@ -231,6 +237,7 @@ void process(void) {
     clear_screen();
     sprite_draw(lost);
     game_over = true;
+    show_screen();
     wait_char();
     return;
   }
