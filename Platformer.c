@@ -67,6 +67,9 @@ char * bat_image_inverted =
       "\\ /"
       " | ";
 
+sprite_id treasure;
+char * treasure_image = "$";
+
 sprite_id lost;
 char * lost_image =
   " ----------------------- "
@@ -104,6 +107,7 @@ void draw_sprites(void) {
   if (level == 2) {
     sprite_draw(bottom_platform_2);
     sprite_draw(bat);
+    sprite_draw(treasure);
   }
 }
 
@@ -126,6 +130,31 @@ bool sprite_collided(sprite_id sprite_1, sprite_id sprite_2) {
   if (sprite_2b < sprite_1y) collided = false;
 
   return collided;
+}
+
+void platform_collision(sprite_id hero, sprite_id platform) {
+  if (sprite_collided(hero, platform)) {
+    int hx = sprite_x(hero);
+    int hy = sprite_y(hero);
+    int px = sprite_x(platform);
+    int py = sprite_y(platform);
+
+    double hdx = sprite_dx(hero);
+    double hdy = sprite_dy(hero);
+    sprite_set_image(hero, hero_image);
+
+    if (hy == py + sprite_height(platform) - 1 && hdy < 0) {
+      hdy = -hdy;
+    } else if (hx + sprite_width(hero) - 1 == px && hdx > 0) {
+      hdx = 0;
+    } else if (hx == px + sprite_width(platform) - 1 && hdx < 0) {
+      hdx = 0;
+    } else {
+      hdy = 0;
+    }
+    sprite_back(hero);
+    sprite_turn_to(hero, hdx, hdy);
+  }
 }
 
 void monster_movement(sprite_id sprite) {
@@ -212,7 +241,7 @@ void levels(void) {
     platform = sprite_create((screen_width()/2) - (pw/2), screen_height() - 10, pw, ph, platform_image);
 
     int bpw = screen_width();
-    int bph = screen_height();
+    int bph = 1;
     bottom_platform = sprite_create(0, screen_height() - 1, bpw, bph, platform_image);
 
     int zw = ZOMBIE_WIDTH;
@@ -228,6 +257,10 @@ void levels(void) {
     int bph = 1;
     bottom_platform = sprite_create(screen_width() - bpw, screen_height() - 1, bpw, bph, platform_image);
     bottom_platform_2 = sprite_create(0, screen_height() - 1, bpw, bph, platform_image);
+
+    int tw = 1;
+    int th = 1;
+    treasure = sprite_create(screen_width()/2, (screen_height()/2) - 5, tw, th, treasure_image);
 
     int bw = 3;
     int bh = 2;
@@ -260,7 +293,7 @@ void process(void) {
   }
   hero_movement();
 
-  if (sprite_collided(hero, zombie)) {
+  if ((level == 1 && sprite_collided(hero, zombie)) || (level == 2 && sprite_collided(hero, bat))) {
     lives -= 1;
     levels();
   }
@@ -269,31 +302,19 @@ void process(void) {
     sprite_step(hero);
     clear_screen();
     level += 1;
+    score += 100;
     levels();
   }
 
-  if (sprite_collided(hero, platform) || sprite_collided(hero, bottom_platform)) {
-    int hx = sprite_x(hero);
-    int hy = sprite_y(hero);
-    int px = sprite_x(platform);
-    int py = sprite_y(platform);
-
-    double hdx = sprite_dx(hero);
-    double hdy = sprite_dy(hero);
-    sprite_set_image(hero, hero_image);
-
-    if (hy == py + PLATFORM_HEIGHT - 1 && hdy < 0) {
-      hdy = -hdy;
-    } else if (hx + HERO_WIDTH - 1 == px && hdx > 0) {
-      hdx = 0;
-    } else if (hx == px + PLATFORM_WIDTH - 1 && hdx < 0) {
-      hdx = 0;
-    } else {
-      hdy = 0;
-    }
-    sprite_back(hero);
-    sprite_turn_to(hero, hdx, hdy);
+  if (level == 2 && sprite_collided(hero, treasure) && sprite_visible(treasure)) {
+    sprite_hide(treasure);
+    score += 50;
   }
+
+  platform_collision(hero, bottom_platform);
+  platform_collision(hero, platform);
+
+  if (level == 2) platform_collision(hero, bottom_platform_2);
 
   if (timer_expired(my_timer)) {
     if (timer < 60) {
