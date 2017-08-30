@@ -19,6 +19,7 @@
 
 bool game_over = false;
 bool update_screen = true;
+bool spin = true;
 int key;
 int lives = 10;
 int level = 1;
@@ -285,10 +286,12 @@ void process(void) {
   if (level == 1) monster_movement(zombie);
   if (level == 2) {
     monster_movement(bat);
-    if (timer % 2) {
+    if (spin) {
       sprite_set_image(bat, bat_image_inverted);
+      spin = false;
     } else {
       sprite_set_image(bat, bat_image);
+      spin = true;
     }
   }
   hero_movement();
