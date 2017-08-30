@@ -48,6 +48,7 @@ char * door_image =
 
 sprite_id platform;
 sprite_id bottom_platform;
+sprite_id bottom_platform_2;
 char * platform_image = "=============================================================================================================================";
 
 sprite_id zombie;
@@ -56,6 +57,15 @@ char * zombie_image =
       "  Z "
       " Z  "
       "ZZZZ";
+
+sprite_id bat;
+char * bat_image =
+      " | "
+      "/ \\";
+
+char * bat_image_inverted =
+      "\\ /"
+      " | ";
 
 sprite_id lost;
 char * lost_image =
@@ -85,11 +95,16 @@ void draw_sprites(void) {
   draw_formatted(25, 0, "Lives: %d", lives);
   draw_formatted(45, 0, "Level: %d", level);
   draw_formatted(65, 0, "Score: %d", score);
-  sprite_draw(bottom_platform);
   sprite_draw(hero);
   sprite_draw(zombie);
   sprite_draw(platform);
   sprite_draw(door);
+  sprite_draw(bottom_platform);
+
+  if (level == 2) {
+    sprite_draw(bottom_platform_2);
+    sprite_draw(bat);
+  }
 }
 
 bool sprite_collided(sprite_id sprite_1, sprite_id sprite_2) {
@@ -113,20 +128,20 @@ bool sprite_collided(sprite_id sprite_1, sprite_id sprite_2) {
   return collided;
 }
 
-void zombie_movement(void) {
-  int zx = round(sprite_x(zombie));
-  double zdx = sprite_dx(zombie);
-  double zdy = sprite_dy(zombie);
+void monster_movement(sprite_id sprite) {
+  int x = round(sprite_x(sprite));
+  double dx = sprite_dx(sprite);
+  double dy = sprite_dy(sprite);
 
-  if (zx <= 0) {
-    zdx = fabs(zdx);
-  } else if (zx >= screen_width() - ZOMBIE_WIDTH) {
-    zdx = -fabs(zdx);
+  if (x <= 0) {
+    dx = fabs(dx);
+  } else if (x >= screen_width() - sprite_width(sprite)) {
+    dx = -fabs(dx);
   }
 
-  if (zdx != sprite_dx(zombie)) {
-    sprite_back(zombie);
-    sprite_turn_to(zombie, zdx, zdy);
+  if (dx != sprite_dx(sprite)) {
+    sprite_back(sprite);
+    sprite_turn_to(sprite, dx, dy);
   }
 }
 
@@ -182,14 +197,7 @@ void hero_movement(void) {
   sprite_turn_to(hero, hdx, hdy);
 }
 
-//Setup Game
-void setup(void) {
-  my_timer = create_timer(1000);
-
-  int lw = 25;
-  int lh = 4;
-  lost = sprite_create((screen_width()/2) - (lw/2), (screen_height()/2) - (lh/2), lw, lh, lost_image);
-
+void levels(void) {
   int hw = HERO_WIDTH;
   int hh = HERO_HEIGHT;
   hero = sprite_create(2, screen_height() - 4, hw, hh, hero_image);
@@ -198,31 +206,70 @@ void setup(void) {
   int dh = DOOR_HEIGHT;
   door = sprite_create(screen_width() - 6, screen_height() - 5, dw, dh, door_image);
 
-  int pw = PLATFORM_WIDTH;
-  int ph = PLATFORM_HEIGHT;
-  platform = sprite_create((screen_width()/2) - (pw/2), screen_height() - 10, pw, ph, platform_image);
+  if (level == 1) {
+    int pw = PLATFORM_WIDTH;
+    int ph = PLATFORM_HEIGHT;
+    platform = sprite_create((screen_width()/2) - (pw/2), screen_height() - 10, pw, ph, platform_image);
 
-  int bw = screen_width();
-  int bh = screen_height();
-  bottom_platform = sprite_create(0, screen_height() - 1, bw, bh, platform_image);
+    int bpw = screen_width();
+    int bph = screen_height();
+    bottom_platform = sprite_create(0, screen_height() - 1, bpw, bph, platform_image);
 
-  int zw = ZOMBIE_WIDTH;
-  int zh = ZOMBIE_HEIGHT;
-  zombie = sprite_create(screen_width() - 5, screen_height() - 5, zw, zh, zombie_image);
+    int zw = ZOMBIE_WIDTH;
+    int zh = ZOMBIE_HEIGHT;
+    zombie = sprite_create(screen_width() - 5, screen_height() - 5, zw, zh, zombie_image);
 
-  draw_sprites();
-  sprite_turn_to(zombie, 0.1, 0);
-  sprite_turn(zombie, 180);
+    sprite_turn_to(zombie, 0.1, 0);
+    sprite_turn(zombie, 180);
+  } else if (level == 2) {
+    sprite_destroy(zombie);
+
+    int bpw = screen_width() / 3;
+    int bph = 1;
+    bottom_platform = sprite_create(screen_width() - bpw, screen_height() - 1, bpw, bph, platform_image);
+    bottom_platform_2 = sprite_create(0, screen_height() - 1, bpw, bph, platform_image);
+
+    int bw = 3;
+    int bh = 2;
+    bat = sprite_create(screen_width() - 9, screen_height() - 4, bw, bh, bat_image);
+    sprite_turn_to(bat, 0.2, 0);
+    sprite_turn(bat, 180);
+  }
+}
+
+//Setup Game
+void setup(void) {
+  my_timer = create_timer(1000);
+  levels();
+
+  int lw = 25;
+  int lh = 4;
+  lost = sprite_create((screen_width()/2) - (lw/2), (screen_height()/2) - (lh/2), lw, lh, lost_image);
 }
 
 //Play one turn of game
 void process(void) {
-  zombie_movement();
+  if (level == 1) monster_movement(zombie);
+  if (level == 2) {
+    monster_movement(bat);
+    if (timer % 2) {
+      sprite_set_image(bat, bat_image_inverted);
+    } else {
+      sprite_set_image(bat, bat_image);
+    }
+  }
   hero_movement();
 
   if (sprite_collided(hero, zombie)) {
-    lives = lives - 1;
-    setup();
+    lives -= 1;
+    levels();
+  }
+
+  if (sprite_collided(hero, door)) {
+    sprite_step(hero);
+    clear_screen();
+    level += 1;
+    levels();
   }
 
   if (sprite_collided(hero, platform) || sprite_collided(hero, bottom_platform)) {
@@ -244,7 +291,6 @@ void process(void) {
     } else {
       hdy = 0;
     }
-
     sprite_back(hero);
     sprite_turn_to(hero, hdx, hdy);
   }
@@ -268,7 +314,8 @@ void process(void) {
     return;
   }
 
-  sprite_step(zombie);
+  if (level == 1) sprite_step(zombie);
+  if (level == 2) sprite_step(bat);
   clear_screen();
   draw_sprites();
 }
