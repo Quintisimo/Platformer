@@ -25,7 +25,8 @@ int level = 1;
 int score = 0;
 
 timer_id my_timer;
-double timer;
+int timer;
+int timer_2;
 
 sprite_id hero;
 char * hero_image =
@@ -76,7 +77,11 @@ void draw_border(void) {
 
 void draw_sprites(void) {
   draw_border();
-  draw_formatted(5, 0, "Time: %f", timer);
+  if (timer < 10) {
+    draw_formatted(5, 0, "Time: 0%d:0%d", timer_2, timer);
+  } else {
+    draw_formatted(5, 0, "Time: 0%d:%d", timer_2, timer);
+  }
   draw_formatted(25, 0, "Lives: %d", lives);
   draw_formatted(45, 0, "Level: %d", level);
   draw_formatted(65, 0, "Score: %d", score);
@@ -245,7 +250,12 @@ void process(void) {
   }
 
   if (timer_expired(my_timer)) {
-    timer++;
+    if (timer < 60) {
+      timer++;
+    } else if (timer_2 < 60) {
+      timer_2++;
+      timer = 0;
+    }
   }
 
   if (lives == 0) {
