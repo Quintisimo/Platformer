@@ -12,10 +12,6 @@
 #define HERO_WIDTH (3)
 #define DOOR_HEIGHT (4)
 #define DOOR_WIDTH (4)
-#define PLATFORM_HEIGHT (1)
-#define PLATFORM_WIDTH (30)
-#define ZOMBIE_HEIGHT (4)
-#define ZOMBIE_WIDTH (4)
 
 bool game_over = false;
 bool update_screen = true;
@@ -50,7 +46,16 @@ char * door_image =
 sprite_id platform;
 sprite_id bottom_platform;
 sprite_id bottom_platform_2;
+sprite_id top_platform;
 char * platform_image = "=============================================================================================================================";
+
+sprite_id vertical_platform;
+char * vertical_platform_image =
+      "|"
+      "|"
+      "|"
+      "|"
+      "|";
 
 sprite_id zombie;
 char * zombie_image =
@@ -105,10 +110,15 @@ void draw_sprites(void) {
   sprite_draw(door);
   sprite_draw(bottom_platform);
 
-  if (level == 2) {
+  if (level == 2 || level == 3) {
     sprite_draw(bottom_platform_2);
     sprite_draw(bat);
     sprite_draw(treasure);
+  }
+
+  if (level == 3) {
+    sprite_draw(vertical_platform);
+    sprite_draw(top_platform);
   }
 }
 
@@ -158,6 +168,75 @@ void platform_collision(sprite_id hero, sprite_id platform) {
   }
 }
 
+void levels(void) {
+  int hw = HERO_WIDTH;
+  int hh = HERO_HEIGHT;
+  hero = sprite_create(2, screen_height() - 4, hw, hh, hero_image);
+
+  int dw = DOOR_WIDTH;
+  int dh = DOOR_HEIGHT;
+  door = sprite_create(screen_width() - 6, screen_height() - 5, dw, dh, door_image);
+
+  if (level == 1) {
+    int pw = 30;
+    int ph = 1;
+    platform = sprite_create((screen_width()/2) - (pw/2), screen_height() - 10, pw, ph, platform_image);
+
+    int bpw = screen_width();
+    int bph = 1;
+    bottom_platform = sprite_create(0, screen_height() - 1, bpw, bph, platform_image);
+
+    int zw = 4;
+    int zh = 4;
+    zombie = sprite_create(screen_width() - 5, screen_height() - 5, zw, zh, zombie_image);
+
+    sprite_turn_to(zombie, 0.1, 0);
+    sprite_turn(zombie, 180);
+
+  } else if (level == 2) {
+    sprite_destroy(zombie);
+
+    int bpw = screen_width() / 3;
+    int bph = 1;
+    bottom_platform = sprite_create(screen_width() - bpw, screen_height() - 1, bpw, bph, platform_image);
+    bottom_platform_2 = sprite_create(0, screen_height() - 1, bpw, bph, platform_image);
+
+    int tw = 1;
+    int th = 1;
+    treasure = sprite_create(screen_width()/2, (screen_height()/2) - 5, tw, th, treasure_image);
+
+    int bw = 3;
+    int bh = 2;
+    bat = sprite_create(screen_width() - 9, screen_height() - 4, bw, bh, bat_image);
+    sprite_turn_to(bat, 0.2, 0);
+    sprite_turn(bat, 180);
+
+  } else if (level == 3) {
+    int pw = 40;
+    int ph = 1;
+    platform = sprite_create((screen_width()/2) - (pw/2), screen_height() - 10, pw, ph, platform_image);
+
+    int vw = 1;
+    int vh = 5;
+    vertical_platform = sprite_create(screen_width()/2, screen_height() - 15, vw, vh, vertical_platform_image);
+
+    int tpw = screen_width() / 3;
+    int tph = 1;
+    top_platform = sprite_create((screen_width()/2 - (tpw/2)), screen_height() - 16, tpw, tph, platform_image);
+
+    int tw = 1;
+    int th = 1;
+    treasure = sprite_create(screen_width()/2, (screen_height()/2) - 7, tw, th, treasure_image);
+
+    int bw = 3;
+    int bh = 2;
+    bat = sprite_create(screen_width() - 9, screen_height() - 20, bw, bh, bat_image);
+    sprite_turn_to(bat, 0.2, 0);
+    sprite_turn(bat, 180);
+
+  }
+}
+
 void monster_movement(sprite_id sprite) {
   int x = round(sprite_x(sprite));
   double dx = sprite_dx(sprite);
@@ -181,6 +260,11 @@ void hero_movement(void) {
   int hy = round(sprite_y(hero));
   double hdx = sprite_dx(hero);
   double hdy = sprite_dy(hero);
+
+  if (key == 'l') {
+    level += 1;
+    levels();
+  }
 
   if (key == KEY_LEFT && hx > 2) {
     if (sprite_dx(hero) == 0.1) {
@@ -227,50 +311,6 @@ void hero_movement(void) {
   sprite_turn_to(hero, hdx, hdy);
 }
 
-void levels(void) {
-  int hw = HERO_WIDTH;
-  int hh = HERO_HEIGHT;
-  hero = sprite_create(2, screen_height() - 4, hw, hh, hero_image);
-
-  int dw = DOOR_WIDTH;
-  int dh = DOOR_HEIGHT;
-  door = sprite_create(screen_width() - 6, screen_height() - 5, dw, dh, door_image);
-
-  if (level == 1) {
-    int pw = PLATFORM_WIDTH;
-    int ph = PLATFORM_HEIGHT;
-    platform = sprite_create((screen_width()/2) - (pw/2), screen_height() - 10, pw, ph, platform_image);
-
-    int bpw = screen_width();
-    int bph = 1;
-    bottom_platform = sprite_create(0, screen_height() - 1, bpw, bph, platform_image);
-
-    int zw = ZOMBIE_WIDTH;
-    int zh = ZOMBIE_HEIGHT;
-    zombie = sprite_create(screen_width() - 5, screen_height() - 5, zw, zh, zombie_image);
-
-    sprite_turn_to(zombie, 0.1, 0);
-    sprite_turn(zombie, 180);
-  } else if (level == 2) {
-    sprite_destroy(zombie);
-
-    int bpw = screen_width() / 3;
-    int bph = 1;
-    bottom_platform = sprite_create(screen_width() - bpw, screen_height() - 1, bpw, bph, platform_image);
-    bottom_platform_2 = sprite_create(0, screen_height() - 1, bpw, bph, platform_image);
-
-    int tw = 1;
-    int th = 1;
-    treasure = sprite_create(screen_width()/2, (screen_height()/2) - 5, tw, th, treasure_image);
-
-    int bw = 3;
-    int bh = 2;
-    bat = sprite_create(screen_width() - 9, screen_height() - 4, bw, bh, bat_image);
-    sprite_turn_to(bat, 0.2, 0);
-    sprite_turn(bat, 180);
-  }
-}
-
 //Setup Game
 void setup(void) {
   my_timer = create_timer(1000);
@@ -284,7 +324,8 @@ void setup(void) {
 //Play one turn of game
 void process(void) {
   if (level == 1) monster_movement(zombie);
-  if (level == 2) {
+
+  if (level == 2 || level == 3) {
     monster_movement(bat);
     if (spin) {
       sprite_set_image(bat, bat_image_inverted);
@@ -296,7 +337,7 @@ void process(void) {
   }
   hero_movement();
 
-  if ((level == 1 && sprite_collided(hero, zombie)) || (level == 2 && sprite_collided(hero, bat))) {
+  if ((level == 1 && sprite_collided(hero, zombie)) || ((level == 2 || level == 3) && sprite_collided(hero, bat))) {
     lives -= 1;
     levels();
   }
@@ -317,7 +358,12 @@ void process(void) {
   platform_collision(hero, bottom_platform);
   platform_collision(hero, platform);
 
-  if (level == 2) platform_collision(hero, bottom_platform_2);
+  if (level == 2 || level == 3) platform_collision(hero, bottom_platform_2);
+
+  if (level == 3) {
+    platform_collision(hero, vertical_platform);
+    platform_collision(hero, top_platform);
+  }
 
   if (timer_expired(my_timer)) {
     if (timer < 60) {
@@ -339,7 +385,7 @@ void process(void) {
   }
 
   if (level == 1) sprite_step(zombie);
-  if (level == 2) sprite_step(bat);
+  if (level == 2 || level == 3) sprite_step(bat);
   clear_screen();
   draw_sprites();
 }
