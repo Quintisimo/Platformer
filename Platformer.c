@@ -55,6 +55,8 @@ char * vertical_platform_image =
       "|"
       "|"
       "|"
+      "|"
+      "|"
       "|";
 
 sprite_id zombie;
@@ -214,10 +216,10 @@ void levels(void) {
   } else if (level == 3) {
     int pw = 40;
     int ph = 1;
-    platform = sprite_create((screen_width()/2) - (pw/2), screen_height() - 10, pw, ph, platform_image);
+    platform = sprite_create((screen_width()/2) - (pw/2), screen_height() - 8, pw, ph, platform_image);
 
     int vw = 1;
-    int vh = 5;
+    int vh = 7;
     vertical_platform = sprite_create(screen_width()/2, screen_height() - 15, vw, vh, vertical_platform_image);
 
     int tpw = screen_width() / 3;
@@ -350,7 +352,7 @@ void process(void) {
     levels();
   }
 
-  if (level == 2 && sprite_collided(hero, treasure) && sprite_visible(treasure)) {
+  if ((level == 2 || level == 3) && sprite_collided(hero, treasure) && sprite_visible(treasure)) {
     sprite_hide(treasure);
     score += 50;
   }
@@ -361,7 +363,13 @@ void process(void) {
   if (level == 2 || level == 3) platform_collision(hero, bottom_platform_2);
 
   if (level == 3) {
-    platform_collision(hero, vertical_platform);
+    if (sprite_collided(hero, vertical_platform)) {
+      double hdx = sprite_dx(hero);
+      double hdy = sprite_dy(hero);
+      hdx = 0;
+      sprite_back(hero);
+      sprite_turn_to(hero, hdx, hdy);
+    }
     platform_collision(hero, top_platform);
   }
 
