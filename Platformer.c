@@ -433,6 +433,9 @@ void setup(void) {
 
 //Play one turn of game
 void process(void) {
+  int hy = sprite_y(hero);
+  int hh = sprite_height(hero);
+
   if (level == 1) monster_movement(zombie);
   if (level == 5) {
     monster_movement(top_platform);
@@ -451,7 +454,7 @@ void process(void) {
   }
   hero_movement();
 
-  if ((level == 1 && sprite_collided(hero, zombie)) || ((level == 2 || level == 3) && sprite_collided(hero, bat)) || (level == 5 && sprite_collided(hero, rock))) {
+  if ((hy + hh > screen_height()) ||(level == 1 && sprite_collided(hero, zombie)) || ((level == 2 || level == 3) && sprite_collided(hero, bat)) || (level == 5 && sprite_collided(hero, rock))) {
     lives -= 1;
     levels();
   }
