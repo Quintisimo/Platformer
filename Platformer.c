@@ -148,11 +148,10 @@ bool sprite_collided(sprite_id sprite_1, sprite_id sprite_2) {
 }
 
 void platform_collision(sprite_id hero, sprite_id platform) {
-  int hx = round(sprite_x(hero));
-  int hy = round(sprite_y(hero));
-  int px = round(sprite_x(platform));
-  int py = round(sprite_y(platform));
-  // int hw = sprite_width(hero);
+  int hx = sprite_x(hero);
+  int hy = sprite_y(hero);
+  int px = sprite_x(platform);
+  int py = sprite_y(platform);
   int hh = sprite_height(hero);
 
   double hdx = sprite_dx(hero);
@@ -161,19 +160,19 @@ void platform_collision(sprite_id hero, sprite_id platform) {
   if (sprite_collided(hero, platform)) {
     sprite_set_image(hero, hero_image);
 
-    if (hy == py + sprite_height(platform) && hdy < 0) {
+    if (hy == py + sprite_height(platform) - 1 && hdy < 0) {
       hdy = -hdy;
-    } else if (hx + sprite_width(hero) == px && hdx > 0) {
+    } else if (hx + sprite_width(hero) - 1 == px && hdx > 0) {
       hdx = 0;
-    } else if (hx == px + sprite_width(platform) && hdx < 0) {
+    } else if (hx == px + sprite_width(platform) - 1 && hdx < 0) {
       hdx = 0;
     } else {
       hdy = 0;
     }
     sprite_back(hero);
-  }
-  else if ((hx + sprite_width(hero) < px || hx > px + sprite_width(platform) - 1) && hy + hh == py && hdy == 0) {
+  } else if ((hx + sprite_width(hero) < px || hx > px + sprite_width(platform) - 1) && hy + hh == py && hdy == 0) {
     hdy = 0.5;
+    sprite_set_image(hero, hero_jump_image);
   }
   sprite_turn_to(hero, hdx, hdy);
 }
@@ -268,7 +267,6 @@ void monster_movement(sprite_id sprite) {
 void hero_movement(void) {
   key = get_char();
   int hx = round(sprite_x(hero));
-  // int hy = round(sprite_y(hero));
   double hdx = sprite_dx(hero);
   double hdy = sprite_dy(hero);
 
@@ -278,26 +276,26 @@ void hero_movement(void) {
   }
 
   if (key == KEY_LEFT && hx > 2) {
-    if (sprite_dx(hero) == 0.1) {
+    if (hdx == 0) {
+      hdx = -0.1;
+    } else if (hdx == 0.1) {
       hdx = 0;
-    } else if (hdx < sprite_dx(hero)) {
-      hdx += 0.1;
-    } else if (hdx == sprite_dx(hero)) {
-      hdx -= 0.1;
+    } else if (hdx == 0.3) {
+      hdx = 0.1;
     } else {
-      hdx -= 0.4;
+      hdx = -0.3;
     }
   }
 
   if (key == KEY_RIGHT && hx < screen_width() - HERO_WIDTH - 2) {
-    if (sprite_dx(hero) == -0.1) {
+    if (hdx == 0) {
+      hdx = 0.1;
+    } else if (hdx == -0.1) {
       hdx = 0;
-    } else if (hdx > sprite_dx(hero)) {
-      hdx -= 0.1;
-    } else if (hdx == sprite_dx(hero)) {
-      hdx += 0.1;
+    } else if (hdx == -0.3) {
+      hdx = -0.1;
     } else {
-      hdx += 0.4;
+      hdx = 0.3;
     }
   }
 
