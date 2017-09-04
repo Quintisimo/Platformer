@@ -111,6 +111,8 @@ void draw_sprites(void) {
   sprite_draw(platform);
   sprite_draw(door);
   sprite_draw(bottom_platform);
+  // draw_formatted(10, 10, "%f", sprite_dy(hero));
+  // draw_formatted(10, 11, "%f", sprite_dx(hero));
 
   if (level == 2 || level == 3) {
     sprite_draw(bottom_platform_2);
@@ -146,34 +148,42 @@ bool sprite_collided(sprite_id sprite_1, sprite_id sprite_2) {
 }
 
 void platform_collision(sprite_id hero, sprite_id platform) {
-  if (sprite_collided(hero, platform)) {
-    int hx = sprite_x(hero);
-    int hy = sprite_y(hero);
-    int px = sprite_x(platform);
-    int py = sprite_y(platform);
+  int hx = round(sprite_x(hero));
+  int hy = round(sprite_y(hero));
+  int px = round(sprite_x(platform));
+  int py = round(sprite_y(platform));
+  // int hw = sprite_width(hero);
+  int hh = sprite_height(hero);
 
-    double hdx = sprite_dx(hero);
-    double hdy = sprite_dy(hero);
+  double hdx = sprite_dx(hero);
+  double hdy = sprite_dy(hero);
+
+  if (sprite_collided(hero, platform)) {
     sprite_set_image(hero, hero_image);
 
-    if (hy == py + sprite_height(platform) - 1 && hdy < 0) {
+    if (hy == py + sprite_height(platform) && hdy < 0) {
       hdy = -hdy;
-    } else if (hx + sprite_width(hero) - 1 == px && hdx > 0) {
+    } else if (hx + sprite_width(hero) == px && hdx > 0) {
       hdx = 0;
-    } else if (hx == px + sprite_width(platform) - 1 && hdx < 0) {
+    } else if (hx == px + sprite_width(platform) && hdx < 0) {
       hdx = 0;
     } else {
       hdy = 0;
     }
     sprite_back(hero);
-    sprite_turn_to(hero, hdx, hdy);
   }
+  else if ((hx + sprite_width(hero) < px || hx > px + sprite_width(platform) - 1) && hy + hh == py && hdy == 0) {
+    hdy = 0.5;
+  }
+  sprite_turn_to(hero, hdx, hdy);
 }
 
 void levels(void) {
   int hw = HERO_WIDTH;
   int hh = HERO_HEIGHT;
   hero = sprite_create(2, screen_height() - 4, hw, hh, hero_image);
+  sprite_back(hero);
+  sprite_turn_to(hero, 0, 0);
 
   int dw = DOOR_WIDTH;
   int dh = DOOR_HEIGHT;
@@ -200,8 +210,8 @@ void levels(void) {
 
     int bpw = screen_width() / 3;
     int bph = 1;
-    bottom_platform = sprite_create(screen_width() - bpw, screen_height() - 1, bpw, bph, platform_image);
-    bottom_platform_2 = sprite_create(0, screen_height() - 1, bpw, bph, platform_image);
+    bottom_platform = sprite_create(0, screen_height() - 1, bpw, bph, platform_image);
+    bottom_platform_2 = sprite_create(screen_width() - bpw, screen_height() - 1, bpw, bph, platform_image);
 
     int tw = 1;
     int th = 1;
@@ -235,7 +245,6 @@ void levels(void) {
     bat = sprite_create(screen_width() - 9, screen_height() - 20, bw, bh, bat_image);
     sprite_turn_to(bat, 0.2, 0);
     sprite_turn(bat, 180);
-
   }
 }
 
@@ -259,7 +268,7 @@ void monster_movement(sprite_id sprite) {
 void hero_movement(void) {
   key = get_char();
   int hx = round(sprite_x(hero));
-  int hy = round(sprite_y(hero));
+  // int hy = round(sprite_y(hero));
   double hdx = sprite_dx(hero);
   double hdy = sprite_dy(hero);
 
@@ -292,7 +301,7 @@ void hero_movement(void) {
     }
   }
 
-  if (key == KEY_UP && hy > 2) {
+  if (key == KEY_UP) {
     sprite_set_image(hero, hero_jump_image);
     if (hdy == 0) {
       hdy = -0.5;
@@ -300,7 +309,7 @@ void hero_movement(void) {
       hdy -= 0.01;
     }
   }
-  else if (hdy != 0){
+  else if (hdy != 0) {
     hdy += 0.01;
   }
 
@@ -339,10 +348,10 @@ void process(void) {
   }
   hero_movement();
 
-  if ((level == 1 && sprite_collided(hero, zombie)) || ((level == 2 || level == 3) && sprite_collided(hero, bat))) {
-    lives -= 1;
-    levels();
-  }
+  // if ((level == 1 && sprite_collided(hero, zombie)) || ((level == 2 || level == 3) && sprite_collided(hero, bat))) {
+  //   lives -= 1;
+  //   levels();
+  // }
 
   if (sprite_collided(hero, door)) {
     sprite_step(hero);
