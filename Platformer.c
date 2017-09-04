@@ -336,7 +336,7 @@ void levels(void) {
 
     int rw = 6;
     int rh = 3;
-    rock = sprite_create(10, -20, rw, rh, rock_image);
+    rock = sprite_create(20, -10, rw, rh, rock_image);
 
     int mw = 3;
     int mh = 4;
@@ -472,6 +472,18 @@ void process(void) {
     score += 50;
   }
 
+  if ((level == 5 && sprite_collided(hero, medal)) || level == 6) {
+    while ( get_char() >= 0 ) {}
+    clear_screen();
+    draw_formatted((screen_width() / 2) - 4, (screen_height() / 2) - 4, "You Won!!");
+    draw_formatted((screen_width() / 2) - 11, (screen_height() / 2) - 2, "Your Final Score was %d", score);
+    draw_formatted((screen_width() / 2) - 10, (screen_height() / 2), "Press any key to exit");
+    game_over = true;
+    show_screen();
+    wait_char();
+    return;
+  }
+
   if (level == 4 && sprite_collided(hero, door_key) && sprite_visible(door_key)) {
     sprite_hide(door_key);
     can_unlock = true;
@@ -510,6 +522,7 @@ void process(void) {
     platform_collision(hero, top_platform, true);
     platform_collision(rock, top_platform, false);
     platform_collision(rock, bottom_platform_2, false);
+    platform_collision(rock, bottom_platform, false);
   }
 
   if (timer_expired(my_timer)) {
