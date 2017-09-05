@@ -148,8 +148,6 @@ void draw_sprites(void) {
   sprite_draw(platform);
   if (level < 5)sprite_draw(door);
   sprite_draw(bottom_platform);
-  draw_formatted(10, 10, "%f", sprite_dy(hero));
-  // draw_formatted(10, 11, "%f", sprite_dx(hero));
 
   if (level == 2 || level == 3) {
     sprite_draw(bottom_platform_2);
@@ -175,6 +173,9 @@ void draw_sprites(void) {
     sprite_draw(bottom_platform_2);
     sprite_draw(medal);
     sprite_draw(rock);
+    // draw_formatted(10, 11, "%f", sprite_x(rock));
+    // draw_formatted(10, 10, "%f", sprite_y(rock));
+    // draw_formatted(10, 12, "%d", screen_height());
   }
 }
 
@@ -214,9 +215,9 @@ void platform_collision(sprite_id hero, sprite_id platform, bool person) {
 
     if (hy == py + sprite_height(platform) - 1 && hdy < 0) {
       hdy = -hdy;
-    } else if (hx + sprite_width(hero) - 1 == px && hdx > 0) {
+    } else if (hx + sprite_width(hero) == px && hdx > 0) {
       hdx = 0;
-    } else if (hx == px + sprite_width(platform) - 1 && hdx < 0) {
+    } else if (hx == px + sprite_width(platform) && hdx < 0) {
       hdx = 0;
     } else {
       hdy = 0;
@@ -336,7 +337,7 @@ void levels(void) {
 
     int rw = 6;
     int rh = 3;
-    rock = sprite_create(20, -10, rw, rh, rock_image);
+    rock = sprite_create(5, -10, rw, rh, rock_image);
 
     int mw = 3;
     int mh = 4;
@@ -344,7 +345,7 @@ void levels(void) {
 
     sprite_turn_to(top_platform, 0.2, 0);
     sprite_turn_to(bottom_platform_2, -0.2, 0);
-    sprite_turn_to(rock, 0.1, 0.2);
+    sprite_turn_to(rock, 0.4, 0.4);
   }
 }
 
@@ -363,6 +364,20 @@ void monster_movement(sprite_id sprite) {
     sprite_back(sprite);
     sprite_turn_to(sprite, dx, dy);
   }
+}
+
+void rock_movement() {
+  double rx = sprite_x(rock);
+  double ry = sprite_y(rock);
+  double rh = sprite_height(rock);
+
+  monster_movement(rock);
+
+  if (ry + rh > screen_height()) {
+    ry = -ry;
+    sprite_back(rock);
+  }
+  sprite_move_to(rock, rx, ry);
 }
 
 void hero_movement(void) {
@@ -440,6 +455,7 @@ void process(void) {
   if (level == 5) {
     monster_movement(top_platform);
     monster_movement(bottom_platform_2);
+    rock_movement();
   }
 
   if (level == 2 || level == 3) {
