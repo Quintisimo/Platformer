@@ -148,7 +148,7 @@ void draw_sprites(void) {
   sprite_draw(platform);
   if (level < 5)sprite_draw(door);
   sprite_draw(bottom_platform);
-  // draw_formatted(10, 10, "%f", sprite_dy(hero));
+  draw_formatted(10, 10, "%f", sprite_dy(hero));
   // draw_formatted(10, 11, "%f", sprite_dx(hero));
 
   if (level == 2 || level == 3) {
@@ -263,7 +263,7 @@ void levels(void) {
 
     int bpw = screen_width() / 3;
     int bph = 1;
-    bottom_platform = sprite_create(0, screen_height() - 1, bpw, bph, platform_image);
+    bottom_platform = sprite_create(0, screen_height() - 1.1, bpw, bph, platform_image);
     bottom_platform_2 = sprite_create(screen_width() - bpw, screen_height() - 1, bpw, bph, platform_image);
 
     int tw = 1;
