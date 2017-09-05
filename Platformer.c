@@ -58,6 +58,20 @@ char * vertical_platform_image =
       "|"
       "|"
       "|"
+      "|"
+      "|"
+      "|"
+      "|"
+      "|"
+      "|"
+      "|"
+      "|"
+      "|"
+      "|"
+      "|"
+      "|"
+      "|"
+      "|"
       "|";
 
 sprite_id unlock_door;
@@ -140,9 +154,9 @@ void draw_sprites(void) {
   } else {
     draw_formatted(5, 0, "Time: 0%d:%d", timer_2, timer);
   }
-  draw_formatted(25, 0, "Lives: %d", lives);
-  draw_formatted(45, 0, "Level: %d", level);
-  draw_formatted(65, 0, "Score: %d", score);
+  draw_formatted((screen_width() / 2) - 10, 0, "Lives: %d", lives);
+  draw_formatted((screen_width() / 2) + 10, 0, "Level: %d", level);
+  draw_formatted(screen_width() - 15, 0, "Score: %d", score);
   sprite_draw(hero);
   if (level == 1) sprite_draw(zombie);
   sprite_draw(platform);
@@ -244,9 +258,9 @@ void levels(void) {
   }
 
   if (level == 1) {
-    int pw = 30;
+    int pw = screen_width() / 3;
     int ph = 1;
-    platform = sprite_create((screen_width()/2) - (pw/2), screen_height() - 10, pw, ph, platform_image);
+    platform = sprite_create((screen_width()/2) - (pw/2), screen_height() - (screen_height() / 4), pw, ph, platform_image);
 
     int bpw = screen_width();
     int bph = 1;
@@ -269,7 +283,7 @@ void levels(void) {
 
     int tw = 1;
     int th = 1;
-    treasure = sprite_create(screen_width()/2, (screen_height()/2) - 5, tw, th, treasure_image);
+    treasure = sprite_create(screen_width() / 2, screen_height() / 2, tw, th, treasure_image);
 
     int bw = 3;
     int bh = 2;
@@ -278,17 +292,17 @@ void levels(void) {
     sprite_turn(bat, 180);
 
   } else if (level == 3) {
-    int pw = 40;
+    int pw = screen_width() / 2;
     int ph = 1;
-    platform = sprite_create((screen_width()/2) - (pw/2), screen_height() - 8, pw, ph, platform_image);
+    platform = sprite_create((screen_width() / 2) - (pw / 2), screen_height() - screen_height() / 4, pw, ph, platform_image);
 
     int vw = 1;
-    int vh = 7;
-    vertical_platform = sprite_create(screen_width()/2, screen_height() - 15, vw, vh, vertical_platform_image);
+    int vh = (screen_height() - screen_height() / 4) - (screen_height() - (screen_height() / 4) - 10);
+    vertical_platform = sprite_create(screen_width()/2, screen_height() - (screen_height() / 4) - 10, vw, vh, vertical_platform_image);
 
-    int tpw = screen_width() / 3;
+    int tpw = screen_width() / 4;
     int tph = 1;
-    top_platform = sprite_create((screen_width()/2 - (tpw/2)), screen_height() - 16, tpw, tph, platform_image);
+    top_platform = sprite_create((screen_width()/2 - (tpw/2)), screen_height() - (screen_height() / 4) - 10, tpw, tph, platform_image);
 
     int tw = 1;
     int th = 1;
@@ -296,7 +310,7 @@ void levels(void) {
 
     int bw = 3;
     int bh = 2;
-    bat = sprite_create(screen_width() - 9, screen_height() - 20, bw, bh, bat_image);
+    bat = sprite_create(screen_width() - 9, screen_height() - (screen_height() / 4) - 15, bw, bh, bat_image);
     sprite_turn_to(bat, 0.2, 0);
     sprite_turn(bat, 180);
 
@@ -319,7 +333,7 @@ void levels(void) {
 
     int udw = 2;
     int udh = (screen_height() / 4) - 1;
-    unlock_door = sprite_create((screen_width() / 4) + (screen_width() / 2), ((screen_height() / 4) + (screen_height() / 2)) + 1, udw, udh, unlock_door_image);
+    unlock_door = sprite_create((screen_width() / 4) + (screen_width() / 2), ((screen_height() / 4) + (screen_height() / 2) + 1), udw, udh, unlock_door_image);
 
   } else if (level == 5) {
     sprite_destroy(door_key);
