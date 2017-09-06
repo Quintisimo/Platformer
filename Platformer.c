@@ -29,14 +29,14 @@ int timer_2;
 
 sprite_id hero;
 char * hero_image =
-      " 0 "
+      " o "
       "/|\\"
-      "/'\\ ";
+      "/ \\ ";
 
 char * hero_jump_image =
-      " 0 "
+      " o "
       "\\|/"
-      "/'\\ ";
+      "/ \\ ";
 
 sprite_id door;
 char * door_image =
@@ -309,7 +309,7 @@ void levels(void) {
   if (level == 1) {
     int pw = screen_width() / 3;
     int ph = 1;
-    platform = sprite_create((screen_width()/2) - (pw/2), screen_height() - (screen_height() / 4), pw, ph, platform_image);
+    platform = sprite_create((screen_width()/2) - (pw/2), screen_height() - (screen_height() / 3), pw, ph, platform_image);
 
     int bpw = screen_width();
     int bph = 1;
@@ -449,8 +449,7 @@ void rock_movement() {
 
 
 void hero_movement(void) {
-  bool ground = true;
-  if (ground) key = get_char();
+  key = get_char();
   int hx = round(sprite_x(hero));
   double hdx = sprite_dx(hero);
   double hdy = sprite_dy(hero);
@@ -486,7 +485,6 @@ void hero_movement(void) {
 
   if (key == KEY_UP) {
     sprite_set_image(hero, hero_jump_image);
-    ground = false;
     if (hdy == 0) {
       hdy = -0.5;
     } else {
@@ -494,8 +492,6 @@ void hero_movement(void) {
     }
   } else if (hdy != 0) {
     hdy += 0.01;
-  } else {
-    ground = true;
   }
 
   if ((hx > 1 && hx < screen_width() - HERO_WIDTH - 2)) {
