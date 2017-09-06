@@ -459,7 +459,7 @@ void hero_movement(void) {
     levels();
   }
 
-  if (key == KEY_LEFT && hx > 2) {
+  if (key == KEY_LEFT && hx > 2 && hdy == 0) {
     if (hdx == 0) {
       hdx = -0.1;
     } else if (hdx == 0.1) {
@@ -471,7 +471,7 @@ void hero_movement(void) {
     }
   }
 
-  if (key == KEY_RIGHT && hx < screen_width() - HERO_WIDTH - 2) {
+  if (key == KEY_RIGHT && hx < screen_width() - HERO_WIDTH - 2 && hdy == 0) {
     if (hdx == 0) {
       hdx = 0.1;
     } else if (hdx == -0.1) {
