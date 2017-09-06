@@ -356,12 +356,12 @@ void levels(void) {
 
     int tw = 1;
     int th = 1;
-    treasure = sprite_create(screen_width()/2, (screen_height()/2) - 7, tw, th, treasure_image);
+    treasure = sprite_create(screen_width()/2, screen_height() - (screen_height() / 4) - 15, tw, th, treasure_image);
     decorate(treasure);
 
     int bw = 3;
     int bh = 2;
-    bat = sprite_create(screen_width() - 9, screen_height() - (screen_height() / 4) - 15, bw, bh, bat_image);
+    bat = sprite_create(screen_width() - 9, (screen_height()/2) - 7, bw, bh, bat_image);
     sprite_turn_to(bat, 0.2, 0);
     sprite_turn(bat, 180);
 
