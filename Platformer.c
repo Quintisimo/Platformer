@@ -7,7 +7,7 @@
 #include <cab202_sprites.h>
 #include <cab202_timers.h>
 
-#define DELAY (100)
+#define DELAY (10)
 #define HERO_HEIGHT (3)
 #define HERO_WIDTH (3)
 #define DOOR_HEIGHT (4)
@@ -16,6 +16,7 @@
 bool game_over = false;
 bool update_screen = true;
 bool spin = true;
+bool shine = true;
 bool can_unlock = false;
 int key;
 int lives = 10;
@@ -117,6 +118,9 @@ char * rock_image =
       "------";
 
 sprite_id decoration;
+sprite_id decoration_2;
+sprite_id decoration_3;
+sprite_id decoration_4;
 char * decoration_image = "*";
 
 sprite_id treasure;
@@ -169,8 +173,11 @@ void draw_sprites(void) {
   if (level == 2 || level == 3) {
     sprite_draw(bottom_platform_2);
     sprite_draw(bat);
-    sprite_draw(treasure);
     sprite_draw(decoration);
+    sprite_draw(decoration_2);
+    sprite_draw(decoration_3);
+    sprite_draw(decoration_4);
+    sprite_draw(treasure);
   }
 
   if (level == 3) {
@@ -182,8 +189,11 @@ void draw_sprites(void) {
     sprite_draw(top_platform);
     sprite_draw(bottom_platform_2);
     sprite_draw(door_key);
-    sprite_draw(unlock_door);
     sprite_draw(decoration);
+    sprite_draw(decoration_2);
+    sprite_draw(decoration_3);
+    sprite_draw(decoration_4);
+    sprite_draw(unlock_door);
   }
 
   if (level == 5) {
@@ -191,8 +201,11 @@ void draw_sprites(void) {
     sprite_draw(top_platform);
     sprite_draw(bottom_platform_2);
     sprite_draw(medal);
-    sprite_draw(rock);
     sprite_draw(decoration);
+    sprite_draw(decoration_2);
+    sprite_draw(decoration_3);
+    sprite_draw(decoration_4);
+    sprite_draw(rock);
     // draw_formatted(10, 11, "%f", sprite_x(rock));
     // draw_formatted(10, 10, "%f", sprite_y(rock));
     // draw_formatted(10, 12, "%d", screen_height());
@@ -253,16 +266,31 @@ void platform_collision(sprite_id hero, sprite_id platform, bool person) {
 void decorate(sprite_id sprite) {
   int x = sprite_x(sprite);
   int y = sprite_y(sprite);
-  decoration = sprite_create(x - 5, y - 7, 1, 1, decoration_image);
+  int h = sprite_height(sprite);
+  int w = sprite_width(sprite);
 
-  double dx = x - sprite_x(decoration);
-  double dy = y - sprite_y(decoration);
-  double dist = sqrt(dx * dx + dy * dy);
-  dx = dx / dist;
-  dy = dy / dist;
-  dx = dx * 0.26;
-  dy = dy * 0.26;
-  sprite_turn(decoration, -90);
+  decoration = sprite_create(x - 1, y - 1, 1, 1, decoration_image);
+  decoration_2 = sprite_create(x + w, y + h, 1, 1, decoration_image);
+  decoration_3 = sprite_create(x - 1, y + h, 1, 1, decoration_image);
+  decoration_4 = sprite_create(x + w, y - 1, 1, 1, decoration_image);
+}
+
+void animate_decoration(sprite_id sprite) {
+  if (sprite_visible(sprite)) {
+    if (shine) {
+      sprite_show(decoration);
+      sprite_show(decoration_4);
+      sprite_hide(decoration_3);
+      sprite_hide(decoration_2);
+      shine = false;
+    } else {
+      sprite_show(decoration_2);
+      sprite_show(decoration_3);
+      sprite_hide(decoration);
+      sprite_hide(decoration_4);
+      shine = true;
+    }
+  }
 }
 
 void levels(void) {
@@ -419,26 +447,6 @@ void rock_movement() {
   sprite_move_to(rock, rx, ry);
 }
 
-void accelerate_towards(sprite_id sprite) {
-  double x_diff = sprite_x(sprite) - sprite_x(decoration);
-  double y_diff = sprite_y(sprite) - sprite_y(decoration);
-  double dist_squared = x_diff * x_diff + y_diff + y_diff;
-  if (dist_squared < 1e-10) dist_squared = 1e-10;
-  double dist = sqrt(dist_squared);
-  double dx = sprite_dx(decoration);
-  double dy = sprite_dy(decoration);
-  double a = 1 / dist_squared;
-  dx = dx + (a * x_diff / dist);
-  dy = dy + (a * y_diff / dist);
-  double v = sqrt(dx * dx + dy * dy);
-
-  if (v > 1) {
-    dx = dx / v;
-    dx = dx / v;
-  }
-  sprite_turn_to(decoration, dx, dy);
-}
-
 
 void hero_movement(void) {
   bool ground = true;
@@ -523,7 +531,7 @@ void process(void) {
 
   if (level == 2 || level == 3) {
     monster_movement(bat);
-    accelerate_towards(treasure);
+    animate_decoration(treasure);
     if (spin) {
       sprite_set_image(bat, bat_image_inverted);
       spin = false;
@@ -549,6 +557,10 @@ void process(void) {
 
   if ((level == 2 || level == 3) && sprite_collided(hero, treasure) && sprite_visible(treasure)) {
     sprite_hide(treasure);
+    sprite_hide(decoration);
+    sprite_hide(decoration_2);
+    sprite_hide(decoration_3);
+    sprite_hide(decoration_4);
     score += 50;
   }
 
@@ -566,6 +578,10 @@ void process(void) {
 
   if (level == 4 && sprite_collided(hero, door_key) && sprite_visible(door_key)) {
     sprite_hide(door_key);
+    sprite_hide(decoration);
+    sprite_hide(decoration_2);
+    sprite_hide(decoration_3);
+    sprite_hide(decoration_4);
     can_unlock = true;
   }
 
@@ -586,6 +602,7 @@ void process(void) {
   }
 
   if (level == 4) {
+    animate_decoration(door_key);
     if (sprite_collided(hero, unlock_door) && !can_unlock) {
       double hdx = sprite_dx(hero);
       double hdy = sprite_dy(hero);
@@ -596,15 +613,14 @@ void process(void) {
       sprite_hide(unlock_door);
     }
     platform_collision(hero, top_platform, true);
-    accelerate_towards(door_key);
   }
 
   if (level == 5) {
+    animate_decoration(medal);
     platform_collision(hero, top_platform, true);
     platform_collision(rock, top_platform, false);
     platform_collision(rock, bottom_platform_2, false);
     platform_collision(rock, bottom_platform, false);
-    accelerate_towards(medal);
   }
 
   if (timer_expired(my_timer)) {
