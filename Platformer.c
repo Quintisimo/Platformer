@@ -428,8 +428,10 @@ void monster_movement(sprite_id sprite) {
   }
 
   if (dx != sprite_dx(sprite)) {
-    sprite_back(sprite);
-    sprite_turn_to(sprite, dx, dy);
+    monster.x -= monster.dx;
+    monster.y -= monster.dy;
+    monster.dx = dx;
+    monster.dy = dy;
   }
 }
 
